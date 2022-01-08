@@ -1,1 +1,1 @@
-# nn-utils
+# nn-core
