@@ -8,3 +8,5 @@ except ImportError:
         file=sys.stderr,
     )
     __version__ = "unknown"
+
+__all__ = ["__version__"]
