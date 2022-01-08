@@ -3,7 +3,7 @@ from typing import Callable, Dict, NoReturn
 from omegaconf import DictConfig, OmegaConf
 
 
-class OnSaveCheckpointInjectionHook:
+class OnSaveCheckpointInjection:
     def __init__(
         self,
         cfg: DictConfig,
