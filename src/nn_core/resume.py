@@ -1,5 +1,6 @@
 import re
 from pathlib import Path
+from typing import Optional
 
 import torch
 import wandb
@@ -9,7 +10,7 @@ RUN_PATH_PATTERN = re.compile(r"^([^/]+)/([^/]+)/([^/]+)$")
 
 
 def resolve_ckpt(ckpt_or_run_path: str) -> str:
-    """Resolve the run path or ckpt to a checkpoint
+    """Resolve the run path or ckpt to a checkpoint.
 
     Args:
         ckpt_or_run_path: run identifier or checkpoint path
@@ -30,7 +31,7 @@ def resolve_ckpt(ckpt_or_run_path: str) -> str:
 
 
 def resolve_run_path(ckpt_or_run_path: str) -> str:
-    """Resolve the run path or ckpt to a run path
+    """Resolve the run path or ckpt to a run path.
 
     Args:
         ckpt_or_run_path: run identifier or checkpoint path
@@ -47,13 +48,16 @@ def resolve_run_path(ckpt_or_run_path: str) -> str:
         raise ValueError(f"Checkpoint or run not found: {ckpt_or_run_path}")
 
 
-def resolve_run_version(ckpt_or_run_path: str) -> str:
-    """Resolve the run path or ckpt to the wandb run version
+def resolve_run_version(ckpt_or_run_path: Optional[str] = None, run_path: Optional[str] = None) -> str:
+    """Resolve the run path or ckpt to the wandb run version.
 
     Args:
         ckpt_or_run_path: run identifier or checkpoint path
+        run_path: the run path if already available
 
     Returns:
         a wandb run version
     """
-    return RUN_PATH_PATTERN.match(resolve_run_path(ckpt_or_run_path)).group(3)
+    if run_path is None:
+        run_path = resolve_run_path(ckpt_or_run_path)
+    return RUN_PATH_PATTERN.match(run_path).group(3)

@@ -63,7 +63,7 @@ class NNLoggerConfiguration(Callback):
             # Switch wandb mode to offline to prevent online logging
             self.logger_cfg.mode = "offline"
 
-        logger: LightningLoggerBase = hydra.utils.instantiate(self.logger_cfg)
+        logger: LightningLoggerBase = hydra.utils.instantiate(self.logger_cfg, version=trainer.logger.resume_id)
 
         if self.upload.source:
             if self.wandb:
