@@ -45,3 +45,15 @@ def resolve_run_path(ckpt_or_run_path: str) -> str:
         return torch.load(ckpt_or_run_path)["run_path"]
     except FileNotFoundError:
         raise ValueError(f"Checkpoint or run not found: {ckpt_or_run_path}")
+
+
+def resolve_run_version(ckpt_or_run_path: str) -> str:
+    """Resolve the run path or ckpt to the wandb run version
+
+    Args:
+        ckpt_or_run_path: run identifier or checkpoint path
+
+    Returns:
+        a wandb run version
+    """
+    return RUN_PATH_PATTERN.match(resolve_run_path(ckpt_or_run_path)).group(3)
