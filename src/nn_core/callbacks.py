@@ -37,12 +37,13 @@ class NNLoggerConfiguration(Callback):
 
     def on_save_checkpoint(
         self, trainer: "pl.Trainer", pl_module: "pl.LightningModule", checkpoint: Dict[str, Any]
-    ) -> dict:
-        data = [
-            ("best_model_path", trainer.checkpoint_callback.best_model_path),
-            ("best_model_score", str(trainer.checkpoint_callback.best_model_score.detach().cpu().item())),
-        ]
-        trainer.logger.log_text(key="storage_info", columns=["key", "value"], data=data)
+    ) -> None:
+        # Log to wandb the checkpoint meta information
+        trainer.logger.add_path(obj_id="checkpoints/best", obj_path=trainer.checkpoint_callback.best_model_path)
+        trainer.logger.add_path(
+            obj_id="checkpoints/best_score",
+            obj_path=str(trainer.checkpoint_callback.best_model_score.detach().cpu().item()),
+        )
 
         # Attach to each checkpoint saved the configuration and the wandb run path (to resume logging from
         # only the checkpoint)
