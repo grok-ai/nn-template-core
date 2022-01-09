@@ -21,7 +21,8 @@ class NNLogger(LightningLoggerBase):
         self.cfg = cfg
 
     def __getattr__(self, item):
-        return getattr(self.wrapped, item)
+        if self.wrapped is not None:
+            return getattr(self.wrapped, item)
 
     @property
     def save_dir(self) -> Optional[str]:
@@ -110,6 +111,12 @@ class NNLogger(LightningLoggerBase):
         if isinstance(cfg, DictConfig):
             cfg: Union[Dict[str, Any], argparse.Namespace, DictConfig] = OmegaConf.to_container(cfg, resolve=True)
 
+        # Store the YaML config separately into the wandb dir
+        yaml_conf: str = OmegaConf.to_yaml(cfg=cfg)
+        run_dir: Path = Path(self.run_dir)
+        run_dir.mkdir(exist_ok=True, parents=True)
+        (run_dir / "config.yaml").write_text(yaml_conf)
+
         # save number of model parameters
         cfg[f"{_STATS_KEY}/params_total"] = sum(p.numel() for p in model.parameters())
         cfg[f"{_STATS_KEY}/params_trainable"] = sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -117,9 +124,3 @@ class NNLogger(LightningLoggerBase):
 
         # send hparams to all loggers
         self.wrapped.log_hyperparams(cfg)
-
-        # Store the YaML config separately into the wandb dir
-        yaml_conf: str = OmegaConf.to_yaml(cfg=cfg)
-        run_dir: Path = Path(self.run_dir)
-        run_dir.mkdir(exist_ok=True, parents=True)
-        (run_dir / "config.yaml").write_text(yaml_conf)

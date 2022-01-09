@@ -9,6 +9,7 @@ from pytorch_lightning import Callback
 from pytorch_lightning.loggers import LightningLoggerBase
 
 from nn_core.common import PROJECT_ROOT
+from nn_core.model_logging import NNLogger
 
 pylogger = logging.getLogger(__name__)
 
@@ -28,7 +29,8 @@ class NNLoggerConfiguration(Callback):
         self.wandb: bool = self.logger_cfg["_target_"].endswith("WandbLogger")
 
     def on_train_start(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
-        trainer.logger.log_configuration(model=pl_module)
+        if isinstance(trainer.logger, NNLogger):
+            trainer.logger.log_configuration(model=pl_module)
 
         if "wandb_watch" in self.kwargs:
             trainer.logger.wrapped.watch(pl_module, **self.kwargs["wandb_watch"])
