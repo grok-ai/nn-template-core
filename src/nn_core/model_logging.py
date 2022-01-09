@@ -20,6 +20,9 @@ class NNLogger(LightningLoggerBase):
         self.storage_dir: str = storage_dir
         self.cfg = cfg
 
+    def add_path(self, obj_id: str, obj_path: str) -> None:
+        self.experiment.config.update({f"paths/{obj_id}": str(obj_path)}, allow_val_change=True)
+
     def __getattr__(self, item):
         if self.wrapped is not None:
             return getattr(self.wrapped, item)
