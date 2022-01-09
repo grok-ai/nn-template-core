@@ -14,11 +14,12 @@ class NNLogger(LightningLoggerBase):
 
     __doc__ = LightningLoggerBase.__doc__
 
-    def __init__(self, logger: Optional[LightningLoggerBase], storage_dir: str, cfg):
+    def __init__(self, logger: Optional[LightningLoggerBase], storage_dir: str, cfg: DictConfig, resume_id: str):
         super().__init__()
         self.wrapped: LightningLoggerBase = logger
         self.storage_dir: str = storage_dir
         self.cfg = cfg
+        self.resume_id = resume_id
 
     def add_path(self, obj_id: str, obj_path: str) -> None:
         self.experiment.config.update({f"paths/{obj_id}": str(obj_path)}, allow_val_change=True)
