@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional
 
 import hydra
 import pytorch_lightning as pl
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import Callback
 from pytorch_lightning.loggers import LightningLoggerBase
 
@@ -44,7 +44,12 @@ class NNLoggerConfiguration(Callback):
         ]
         trainer.logger.log_text(key="storage_info", columns=["key", "value"], data=data)
 
-        return checkpoint
+        # Attach to each checkpoint saved the configuration and the wandb run path (to resume logging from
+        # only the checkpoint)
+        checkpoint["cfg"] = OmegaConf.to_container(trainer.logger.cfg, resolve=True)
+        checkpoint[
+            "run_path"
+        ] = f"{trainer.logger.experiment.entity}/{trainer.logger.experiment.project_name()}/{trainer.logger.version}"
 
     # on_init_end can be employed since the Trainer doesn't use the logger until then.
     def on_init_end(self, trainer: "pl.Trainer") -> None:
