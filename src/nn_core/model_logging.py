@@ -23,7 +23,7 @@ class NNLogger(LightningLoggerBase):
 
     __doc__ = LightningLoggerBase.__doc__
 
-    def __init__(self, logging_cfg: DictConfig, cfg: DictConfig, resume_id: str):
+    def __init__(self, logging_cfg: DictConfig, cfg: DictConfig, resume_id: Optional[str]):
         super().__init__()
         self.logging_cfg = logging_cfg
         self.cfg = cfg
