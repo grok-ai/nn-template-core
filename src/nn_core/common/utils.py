@@ -3,7 +3,10 @@ import os
 from typing import List, Optional
 
 import dotenv
+import numpy as np
 from hydra.core.hydra_config import HydraConfig
+from omegaconf import DictConfig
+from pytorch_lightning import seed_everything
 from rich.prompt import Prompt
 
 pylogger = logging.getLogger(__name__)
@@ -64,3 +67,15 @@ def enforce_tags(tags: Optional[List[str]]) -> List[str]:
 
     pylogger.info(f"Tags: {tags if tags is not None else []}")
     return tags
+
+
+def seed_index_everything(train_cfg: DictConfig) -> None:
+    if "seed_index" in train_cfg and train_cfg.seed_index is not None:
+        seed_index = train_cfg.seed_index
+        seed_everything(42)
+        seeds = np.random.randint(np.iinfo(np.int32).max, size=max(42, seed_index + 1))
+        seed = seeds[seed_index]
+        seed_everything(seed)
+        pylogger.info(f"Setting seed {seed} from seeds[{seed_index}]")
+    else:
+        pylogger.warning("The seed has not been set! The reproducibility is not guaranteed.")
