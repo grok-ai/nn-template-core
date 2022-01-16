@@ -16,9 +16,15 @@ class NNTemplateCore(Callback):
 
     def on_train_start(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
         if self._is_nnlogger(trainer):
+            trainer.logger: NNLogger
             trainer.logger.upload_source()
             trainer.logger.log_configuration(model=pl_module)
             trainer.logger.watch_model(pl_module=pl_module)
+
+    def on_train_end(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
+        if self._is_nnlogger(trainer):
+            trainer.logger: NNLogger
+            trainer.logger.upload_run_files()
 
     def on_save_checkpoint(
         self, trainer: pl.Trainer, pl_module: pl.LightningModule, checkpoint: Dict[str, Any]
