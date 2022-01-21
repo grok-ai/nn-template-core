@@ -38,7 +38,7 @@ def local_checkpoint_selection(run_dir: Path, st_key: str) -> Path:
 def get_run_dir(entity: str, project: str, run_id: str) -> Path:
     """Get run directory.
 
-    :param run_path: "flegyas/nn-template/3hztfivf"
+    :param run_path: "entity/project/run_id"
     :return:
     """
     api = wandb.Api()
