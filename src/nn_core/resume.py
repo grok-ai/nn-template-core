@@ -1,12 +1,32 @@
+import logging
 import re
+from operator import xor
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 import torch
 import wandb
+from omegaconf import DictConfig
 from wandb.apis.public import Run
 
+pylogger = logging.getLogger(__name__)
+
 RUN_PATH_PATTERN = re.compile(r"^([^/]+)/([^/]+)/([^/]+)$")
+
+RESUME_MODES = {
+    "continue": {
+        "restore_model": True,
+        "restore_run": True,
+    },
+    "hotstart": {
+        "restore_model": True,
+        "restore_run": False,
+    },
+    None: {
+        "restore_model": False,
+        "restore_run": False,
+    },
+}
 
 
 def resolve_ckpt(ckpt_or_run_path: str) -> str:
@@ -61,3 +81,35 @@ def resolve_run_version(ckpt_or_run_path: Optional[str] = None, run_path: Option
     if run_path is None:
         run_path = resolve_run_path(ckpt_or_run_path)
     return RUN_PATH_PATTERN.match(run_path).group(3)
+
+
+def parse_restore(restore_cfg: DictConfig) -> Tuple[Optional[str], Optional[str]]:
+    ckpt_or_run_path = restore_cfg.ckpt_or_run_path
+    resume_mode = restore_cfg.mode
+
+    resume_ckpt_path = None
+    resume_run_version = None
+
+    if xor(bool(ckpt_or_run_path), bool(resume_mode)):
+        pylogger.warning(f"Inconsistent resume modality {resume_mode} and checkpoint path '{ckpt_or_run_path}'")
+
+    if resume_mode not in RESUME_MODES:
+        message = f"Unsupported resume mode {resume_mode}. Available resume modes are: {RESUME_MODES}"
+        pylogger.error(message)
+        raise ValueError(message)
+
+    flags = RESUME_MODES[resume_mode]
+    restore_model = flags["restore_model"]
+    restore_run = flags["restore_run"]
+
+    if ckpt_or_run_path is not None:
+        if restore_model:
+            resume_ckpt_path = resolve_ckpt(ckpt_or_run_path)
+            pylogger.info(f"Resume training from: '{resume_ckpt_path}'")
+
+        if restore_run:
+            run_path = resolve_run_path(ckpt_or_run_path)
+            resume_run_version = resolve_run_version(run_path=run_path)
+            pylogger.info(f"Resume logging to: '{run_path}'")
+
+    return resume_ckpt_path, resume_run_version
