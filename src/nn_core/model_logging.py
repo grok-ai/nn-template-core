@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import shutil
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
@@ -55,7 +56,7 @@ class NNLogger(LightningLoggerBase):
 
     def upload_source(self) -> None:
         if self.logging_cfg.upload.source and self.wandb:
-            pylogger.info("Uploading source code to wandb")
+            pylogger.info("Uploading source code to W&B")
             self.wrapped.experiment.log_code(
                 root=PROJECT_ROOT,
                 name=None,
@@ -201,3 +202,12 @@ class NNLogger(LightningLoggerBase):
         # send hparams to all loggers
         pylogger.debug("Logging 'cfg'")
         self.wrapped.log_hyperparams(cfg)
+
+    def upload_run_files(self):
+        if self.logging_cfg.upload.run_files:
+            if self.wandb:
+                pylogger.info("Uploading run files to W&B")
+                shutil.copytree(self.run_dir, f"{self.wrapped.experiment.dir}/run_files")
+
+                # FIXME: symlink not working for some reason
+                # os.symlink(self.run_dir, f"{self.wrapped.experiment.dir}/run_files", target_is_directory=True)
