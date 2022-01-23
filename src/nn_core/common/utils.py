@@ -69,10 +69,10 @@ def enforce_tags(tags: Optional[List[str]]) -> List[str]:
     return tags
 
 
-def seed_index_everything(train_cfg: DictConfig) -> None:
+def seed_index_everything(train_cfg: DictConfig, sampling_seed: int = 42) -> None:
     if "seed_index" in train_cfg and train_cfg.seed_index is not None:
         seed_index = train_cfg.seed_index
-        seed_everything(42)
+        np.random.seed(sampling_seed)
         seeds = np.random.randint(np.iinfo(np.int32).max, size=max(42, seed_index + 1))
         seed = seeds[seed_index]
         seed_everything(seed)
