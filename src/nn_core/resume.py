@@ -9,6 +9,8 @@ import wandb
 from omegaconf import DictConfig
 from wandb.apis.public import Run
 
+from nn_core.common import PROJECT_ROOT
+
 pylogger = logging.getLogger(__name__)
 
 RUN_PATH_PATTERN = re.compile(r"^([^/]+)/([^/]+)/([^/]+)$")
@@ -38,7 +40,12 @@ def resolve_ckpt(ckpt_or_run_path: str) -> str:
     Returns:
         an existing path towards the best checkpoint
     """
-    if Path(ckpt_or_run_path).exists():
+    _ckpt_or_run_path: Path = Path(ckpt_or_run_path)
+    # If the path is relative, it is wrt the PROJECT_ROOT, so it is prepended.
+    if not _ckpt_or_run_path.is_absolute():
+        _ckpt_or_run_path = PROJECT_ROOT / _ckpt_or_run_path
+
+    if _ckpt_or_run_path.exists():
         return ckpt_or_run_path
 
     try:
