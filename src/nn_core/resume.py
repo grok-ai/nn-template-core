@@ -91,6 +91,9 @@ def resolve_run_version(ckpt_or_run_path: Optional[str] = None, run_path: Option
 
 
 def parse_restore(restore_cfg: DictConfig) -> Tuple[Optional[str], Optional[str]]:
+    if restore_cfg is None:
+        return None, None
+
     ckpt_or_run_path = restore_cfg.ckpt_or_run_path
     resume_mode = restore_cfg.mode
 
