@@ -1,5 +1,6 @@
 import logging
 import os
+from contextlib import contextmanager
 from typing import List, Optional
 
 import dotenv
@@ -53,6 +54,31 @@ def load_envs(env_file: Optional[str] = None) -> None:
     dotenv.load_dotenv(dotenv_path=env_file, override=True)
 
 
+@contextmanager
+def environ(**kwargs):
+    """Temporarily set the process environment variables.
+
+    https://stackoverflow.com/a/34333710
+
+    >>> with environ(PLUGINS_DIR=u'test/plugins'):
+    ...   "PLUGINS_DIR" in os.environ
+    True
+
+    >>> "PLUGINS_DIR" in os.environ
+    False
+
+    :type kwargs: dict[str, unicode]
+    :param kwargs: Environment variables to set
+    """
+    old_environ = dict(os.environ)
+    os.environ.update(kwargs)
+    try:
+        yield
+    finally:
+        os.environ.clear()
+        os.environ.update(old_environ)
+
+
 def enforce_tags(tags: Optional[List[str]]) -> List[str]:
     if tags is None:
         if "id" in HydraConfig().cfg.hydra.job:
@@ -69,10 +95,10 @@ def enforce_tags(tags: Optional[List[str]]) -> List[str]:
     return tags
 
 
-def seed_index_everything(train_cfg: DictConfig) -> None:
+def seed_index_everything(train_cfg: DictConfig, sampling_seed: int = 42) -> None:
     if "seed_index" in train_cfg and train_cfg.seed_index is not None:
         seed_index = train_cfg.seed_index
-        seed_everything(42)
+        np.random.seed(sampling_seed)
         seeds = np.random.randint(np.iinfo(np.int32).max, size=max(42, seed_index + 1))
         seed = seeds[seed_index]
         seed_everything(seed)
