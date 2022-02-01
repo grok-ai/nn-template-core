@@ -1,5 +1,6 @@
 import logging
 import os
+from contextlib import contextmanager
 from typing import List, Optional
 
 import dotenv
@@ -51,6 +52,31 @@ def load_envs(env_file: Optional[str] = None) -> None:
                      it searches for a `.env` file in the project.
     """
     dotenv.load_dotenv(dotenv_path=env_file, override=True)
+
+
+@contextmanager
+def environ(**kwargs):
+    """Temporarily set the process environment variables.
+
+    https://stackoverflow.com/a/34333710
+
+    >>> with environ(PLUGINS_DIR=u'test/plugins'):
+    ...   "PLUGINS_DIR" in os.environ
+    True
+
+    >>> "PLUGINS_DIR" in os.environ
+    False
+
+    :type kwargs: dict[str, unicode]
+    :param kwargs: Environment variables to set
+    """
+    old_environ = dict(os.environ)
+    os.environ.update(kwargs)
+    try:
+        yield
+    finally:
+        os.environ.clear()
+        os.environ.update(old_environ)
 
 
 def enforce_tags(tags: Optional[List[str]]) -> List[str]:
