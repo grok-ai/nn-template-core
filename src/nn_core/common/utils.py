@@ -95,7 +95,7 @@ def enforce_tags(tags: Optional[List[str]]) -> List[str]:
     return tags
 
 
-def seed_index_everything(train_cfg: DictConfig, sampling_seed: int = 42) -> None:
+def seed_index_everything(train_cfg: DictConfig, sampling_seed: int = 42) -> Optional[int]:
     if "seed_index" in train_cfg and train_cfg.seed_index is not None:
         seed_index = train_cfg.seed_index
         np.random.seed(sampling_seed)
@@ -103,5 +103,7 @@ def seed_index_everything(train_cfg: DictConfig, sampling_seed: int = 42) -> Non
         seed = seeds[seed_index]
         seed_everything(seed)
         pylogger.info(f"Setting seed {seed} from seeds[{seed_index}]")
+        return seed
     else:
         pylogger.warning("The seed has not been set! The reproducibility is not guaranteed.")
+        return None
