@@ -95,6 +95,13 @@ def compress_checkpoint(src_dir: Path, dst_file: Path, delete_dir: bool = True):
     with zipfile.ZipFile(_normalize_path(dst_file), "w") as zip_file:
         for folder, subfolders, files in os.walk(src_dir):
             folder: Path = Path(folder)
+            for subfolder in subfolders:
+                zip_file.write(
+                    folder / subfolder,
+                    (folder / subfolder).relative_to(src_dir),
+                    compress_type=zipfile.ZIP_DEFLATED,
+                )
+
             for file in files:
                 zip_file.write(
                     folder / file,
