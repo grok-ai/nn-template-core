@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Type, Union
 
 import pytorch_lightning as pl
+import torch
 from pytorch_lightning.plugins import TorchCheckpointIO
 
 METADATA_KEY: str = "metadata"
@@ -123,8 +124,15 @@ def extract_checkpoint(ckpt_file: Path) -> Path:
         yield Path(tmp_dir)
 
 
-def load_model(module_class: Type[pl.LightningModule], checkpoint_path: Path):
-    checkpoint = NNCheckpointIO.load(path=checkpoint_path)
-
-    model = module_class._load_model_state(checkpoint=checkpoint, metadata=checkpoint["metadata"])
-    return model
+def load_model(
+    module_class: Type[pl.LightningModule],
+    checkpoint_path: Path,
+    map_location: Optional[Union[Dict[str, str], str, torch.device, int, Callable]] = None,
+):
+    # Lightning checkpoints end with .ckpt, ours with .ckpt.zip
+    if checkpoint_path.name.endswith(".ckpt.zip"):
+        checkpoint = NNCheckpointIO.load(path=checkpoint_path, map_location=map_location)
+        return module_class._load_model_state(checkpoint=checkpoint, metadata=checkpoint.get("metadata", None))
+    else:
+        pylogger.warning(f"Loading a legacy checkpoint (from vanilla PyTorch Lightning): '{checkpoint_path}'")
+        module_class.load_from_checkpoint(checkpoint_path=str(checkpoint_path), map_location=map_location)
