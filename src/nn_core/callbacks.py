@@ -53,4 +53,6 @@ class NNTemplateCore(Callback):
     ) -> None:
         if self._is_nnlogger(trainer):
             trainer.logger.on_save_checkpoint(trainer=trainer, pl_module=pl_module, checkpoint=checkpoint)
-            checkpoint[METADATA_KEY] = trainer.datamodule.metadata
+            metadata = getattr(trainer.datamodule, "metadata", None)
+            if metadata is not None:
+                checkpoint[METADATA_KEY] = metadata
