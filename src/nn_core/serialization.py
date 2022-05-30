@@ -1,3 +1,4 @@
+import collections
 import importlib
 import inspect
 import logging
@@ -17,6 +18,7 @@ METADATA_KEY: str = "metadata"
 
 pylogger = logging.getLogger(__name__)
 
+from typing import Mapping
 
 _METADATA_MODULE_KEY = f"{METADATA_KEY}_module"
 _METADATA_CLASS_KEY = f"{METADATA_KEY}_class"
@@ -124,14 +126,41 @@ def extract_checkpoint(ckpt_file: Path) -> Path:
         yield Path(tmp_dir)
 
 
+def _substistute(dictionary, substitute_values: Dict[str, str], substitute_keys: Dict[str, str] = {}):
+    if not isinstance(dictionary, Mapping):
+        if isinstance(dictionary, collections.Hashable):
+            if substitute_values is not None and dictionary in substitute_values:
+                return substitute_values[dictionary]
+            elif substitute_keys is not None and dictionary in substitute_keys:
+                return substitute_keys[dictionary]
+            else:
+                return dictionary
+        return dictionary
+
+    return {
+        _substistute(key, substitute_values=substitute_values, substitute_keys=substitute_keys,): _substistute(
+            value,
+            substitute_values=substitute_values,
+            substitute_keys=substitute_keys,
+        )
+        for key, value in dictionary.items()
+    }
+
+
 def load_model(
     module_class: Type[pl.LightningModule],
     checkpoint_path: Path,
     map_location: Optional[Union[Dict[str, str], str, torch.device, int, Callable]] = None,
+    substitute_keys: Optional[Dict[str, str]] = None,
+    substitute_values: Optional[Dict[str, str]] = None,
 ):
     # Lightning checkpoints end with .ckpt, ours with .ckpt.zip
     if checkpoint_path.name.endswith(".ckpt.zip"):
         checkpoint = NNCheckpointIO.load(path=checkpoint_path, map_location=map_location)
+
+        if substitute_values is not None:
+            checkpoint = _substistute(checkpoint, substitute_values=substitute_values, substitute_keys=substitute_keys)
+
         return module_class._load_model_state(checkpoint=checkpoint, metadata=checkpoint.get("metadata", None))
     else:
         pylogger.warning(f"Loading a legacy checkpoint (from vanilla PyTorch Lightning): '{checkpoint_path}'")
