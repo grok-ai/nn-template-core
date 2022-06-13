@@ -51,6 +51,8 @@ def load_envs(env_file: Optional[str] = None) -> None:
     :param env_file: the file that defines the environment variables to use. If None
                      it searches for a `.env` file in the project.
     """
+    if env_file is None:
+        env_file = dotenv.find_dotenv(usecwd=True)
     dotenv.load_dotenv(dotenv_path=env_file, override=True)
 
 
