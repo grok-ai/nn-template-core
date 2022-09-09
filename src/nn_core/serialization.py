@@ -12,6 +12,7 @@ from typing import Any, Callable, Dict, Optional, Type, Union
 
 import pytorch_lightning as pl
 import torch
+from pytorch_lightning.core.saving import _load_state
 from pytorch_lightning.plugins import TorchCheckpointIO
 
 METADATA_KEY: str = "metadata"
@@ -94,7 +95,7 @@ class NNCheckpointIO(TorchCheckpointIO):
 
 
 def compress_checkpoint(src_dir: Path, dst_file: Path, delete_dir: bool = True):
-
+    dst_file.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(_normalize_path(dst_file), "w") as zip_file:
         for folder, subfolders, files in os.walk(src_dir):
             folder: Path = Path(folder)
@@ -161,7 +162,7 @@ def load_model(
         if substitute_values is not None:
             checkpoint = _substistute(checkpoint, substitute_values=substitute_values, substitute_keys=substitute_keys)
 
-        return module_class._load_model_state(checkpoint=checkpoint, metadata=checkpoint.get("metadata", None))
+        return _load_state(cls=module_class, checkpoint=checkpoint, metadata=checkpoint.get("metadata", None))
     else:
         pylogger.warning(f"Loading a legacy checkpoint (from vanilla PyTorch Lightning): '{checkpoint_path}'")
         module_class.load_from_checkpoint(checkpoint_path=str(checkpoint_path), map_location=map_location)

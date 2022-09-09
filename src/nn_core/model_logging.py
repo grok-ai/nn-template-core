@@ -39,7 +39,11 @@ class NNLogger(LightningLoggerBase):
             self.logging_cfg.logger.mode = "offline"
 
         pylogger.info(f"Instantiating <{self.logging_cfg.logger['_target_'].split('.')[-1]}>")
-        self.wrapped: LightningLoggerBase = hydra.utils.instantiate(self.logging_cfg.logger, version=self.resume_id)
+        self.wrapped: LightningLoggerBase = hydra.utils.instantiate(
+            self.logging_cfg.logger,
+            version=self.resume_id,
+            dir=os.getenv("WANDB_DIR", "."),
+        )
 
         # force experiment lazy initialization
         _ = self.wrapped.experiment
