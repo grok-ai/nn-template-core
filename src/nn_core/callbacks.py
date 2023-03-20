@@ -51,8 +51,9 @@ class NNTemplateCore(Callback):
     def on_save_checkpoint(
         self, trainer: pl.Trainer, pl_module: pl.LightningModule, checkpoint: Dict[str, Any]
     ) -> None:
-        if trainer.logger is not None:
+        if self._is_nnlogger(trainer):
             trainer.logger.on_save_checkpoint(trainer=trainer, pl_module=pl_module, checkpoint=checkpoint)
-            metadata = getattr(trainer.datamodule, "metadata", None)
-            if metadata is not None:
-                checkpoint[METADATA_KEY] = metadata
+        metadata = getattr(trainer.datamodule, "metadata", None)
+        if metadata is not None:
+            checkpoint[METADATA_KEY] = metadata
+
