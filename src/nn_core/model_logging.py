@@ -10,7 +10,7 @@ import pytorch_lightning
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import LightningModule, Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.loggers import LightningLoggerBase
+from pytorch_lightning.loggers.logger import Logger
 
 from nn_core.common import PROJECT_ROOT
 
@@ -20,9 +20,9 @@ pylogger = logging.getLogger(__name__)
 _STATS_KEY: str = "stats"
 
 
-class NNLogger(LightningLoggerBase):
+class NNLogger(Logger):
 
-    __doc__ = LightningLoggerBase.__doc__
+    __doc__ = Logger.__doc__
 
     def __init__(self, logging_cfg: DictConfig, cfg: DictConfig, resume_id: Optional[str]):
         super().__init__()
@@ -39,7 +39,7 @@ class NNLogger(LightningLoggerBase):
             self.logging_cfg.logger.mode = "offline"
 
         pylogger.info(f"Instantiating <{self.logging_cfg.logger['_target_'].split('.')[-1]}>")
-        self.wrapped: LightningLoggerBase = hydra.utils.instantiate(
+        self.wrapped: Logger = hydra.utils.instantiate(
             self.logging_cfg.logger,
             version=self.resume_id,
             dir=os.getenv("WANDB_DIR", "."),
@@ -115,7 +115,7 @@ class NNLogger(LightningLoggerBase):
 
         This method logs metrics as as soon as it received them. If you want to aggregate
         metrics for one specific `step`, use the
-        :meth:`~pytorch_lightning.loggers.base.LightningLoggerBase.agg_and_log_metrics` method.
+        :meth:`~pytorch_lightning.loggers.base.Logger.agg_and_log_metrics` method.
 
         Args:
             metrics: Dictionary with metric names as keys and measured quantities as values
