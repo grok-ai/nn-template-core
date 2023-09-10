@@ -8,7 +8,7 @@ import tempfile
 import zipfile
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, Type, Union
+from typing import Any, Callable, Dict, Optional, Tuple, Type, Union
 
 import pytorch_lightning as pl
 import torch
@@ -151,10 +151,11 @@ def _substistute(dictionary, substitute_values: Dict[str, str], substitute_keys:
 def load_model(
     module_class: Type[pl.LightningModule],
     checkpoint_path: Path,
+    strict: bool = True,
     map_location: Optional[Union[Dict[str, str], str, torch.device, int, Callable]] = None,
     substitute_keys: Optional[Dict[str, str]] = None,
     substitute_values: Optional[Dict[str, str]] = None,
-):
+) -> Tuple[pl.LightningModule, Dict[str, Any]]:
     # Lightning checkpoints end with .ckpt, ours with .ckpt.zip
     if checkpoint_path.name.endswith(".ckpt.zip"):
         checkpoint = NNCheckpointIO.load(path=checkpoint_path, map_location=map_location)
@@ -162,7 +163,7 @@ def load_model(
         if substitute_values is not None:
             checkpoint = _substistute(checkpoint, substitute_values=substitute_values, substitute_keys=substitute_keys)
 
-        return _load_state(cls=module_class, checkpoint=checkpoint, metadata=checkpoint.get("metadata", None))
+        return _load_state(cls=module_class, checkpoint=checkpoint, strict=strict, metadata=checkpoint.get("metadata", None)), checkpoint
     else:
         pylogger.warning(f"Loading a legacy checkpoint (from vanilla PyTorch Lightning): '{checkpoint_path}'")
-        module_class.load_from_checkpoint(checkpoint_path=str(checkpoint_path), map_location=map_location)
+        return module_class.load_from_checkpoint(checkpoint_path=str(checkpoint_path), map_location=map_location), None
