@@ -20,7 +20,6 @@ _STATS_KEY: str = "stats"
 
 
 class NNLogger(Logger):
-
     __doc__ = Logger.__doc__
 
     def __init__(self, logging_cfg: DictConfig, cfg: DictConfig, resume_id: Optional[str]):
