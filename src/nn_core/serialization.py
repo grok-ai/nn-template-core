@@ -10,10 +10,10 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Tuple, Type, Union
 
-import pytorch_lightning as pl
+import lightning.pytorch as pl
 import torch
-from pytorch_lightning.core.saving import _load_state
-from pytorch_lightning.plugins import TorchCheckpointIO
+from lightning.pytorch.core.saving import _load_state
+from lightning.pytorch.plugins import TorchCheckpointIO
 
 METADATA_KEY: str = "metadata"
 
