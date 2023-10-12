@@ -2,9 +2,9 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-import pytorch_lightning as pl
+import lightning.pytorch as pl
+from lightning.pytorch import Callback, Trainer
 from omegaconf import DictConfig
-from pytorch_lightning import Callback, Trainer
 
 from nn_core.model_logging import NNLogger
 from nn_core.resume import parse_restore
@@ -57,4 +57,3 @@ class NNTemplateCore(Callback):
         metadata = getattr(trainer.datamodule, "metadata", None)
         if metadata is not None:
             checkpoint[METADATA_KEY] = metadata
-

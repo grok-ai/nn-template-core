@@ -6,8 +6,8 @@ from typing import List, Optional
 import dotenv
 import numpy as np
 from hydra.core.hydra_config import HydraConfig
+from lightning.pytorch import seed_everything
 from omegaconf import DictConfig
-from pytorch_lightning import seed_everything
 from rich.prompt import Prompt
 
 pylogger = logging.getLogger(__name__)

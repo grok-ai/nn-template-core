@@ -6,11 +6,10 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
 import hydra
-import pytorch_lightning
+from lightning.pytorch import LightningModule, Trainer
+from lightning.pytorch.callbacks import ModelCheckpoint
+from lightning.pytorch.loggers.logger import Logger
 from omegaconf import DictConfig, OmegaConf
-from pytorch_lightning import LightningModule, Trainer
-from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.loggers.logger import Logger
 
 from nn_core.common import PROJECT_ROOT
 
@@ -115,7 +114,7 @@ class NNLogger(Logger):
 
         This method logs metrics as as soon as it received them. If you want to aggregate
         metrics for one specific `step`, use the
-        :meth:`~pytorch_lightning.loggers.base.Logger.agg_and_log_metrics` method.
+        :meth:`~lightning.pytorch.loggers.base.Logger.agg_and_log_metrics` method.
 
         Args:
             metrics: Dictionary with metric names as keys and measured quantities as values
@@ -167,7 +166,7 @@ class NNLogger(Logger):
 
     def log_configuration(
         self,
-        model: pytorch_lightning.LightningModule,
+        model: LightningModule,
         cfg: Union[Dict[str, Any], argparse.Namespace, DictConfig] = None,
         *args,
         **kwargs,
