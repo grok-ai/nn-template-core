@@ -8,7 +8,7 @@ import tempfile
 import zipfile
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, Tuple, Type, Union
+from typing import Any, Callable, Dict, Mapping, Optional, Tuple, Type, Union
 
 import lightning.pytorch as pl
 import torch
@@ -19,7 +19,6 @@ METADATA_KEY: str = "metadata"
 
 pylogger = logging.getLogger(__name__)
 
-from typing import Mapping
 
 _METADATA_MODULE_KEY = f"{METADATA_KEY}_module"
 _METADATA_CLASS_KEY = f"{METADATA_KEY}_class"
@@ -139,7 +138,11 @@ def _substistute(dictionary, substitute_values: Dict[str, str], substitute_keys:
         return dictionary
 
     return {
-        _substistute(key, substitute_values=substitute_values, substitute_keys=substitute_keys,): _substistute(
+        _substistute(
+            key,
+            substitute_values=substitute_values,
+            substitute_keys=substitute_keys,
+        ): _substistute(
             value,
             substitute_values=substitute_values,
             substitute_keys=substitute_keys,
@@ -163,7 +166,12 @@ def load_model(
         if substitute_values is not None:
             checkpoint = _substistute(checkpoint, substitute_values=substitute_values, substitute_keys=substitute_keys)
 
-        return _load_state(cls=module_class, checkpoint=checkpoint, strict=strict, metadata=checkpoint.get("metadata", None)), checkpoint
+        return (
+            _load_state(
+                cls=module_class, checkpoint=checkpoint, strict=strict, metadata=checkpoint.get("metadata", None)
+            ),
+            checkpoint,
+        )
     else:
         pylogger.warning(f"Loading a legacy checkpoint (from vanilla PyTorch Lightning): '{checkpoint_path}'")
         return module_class.load_from_checkpoint(checkpoint_path=str(checkpoint_path), map_location=map_location), None
